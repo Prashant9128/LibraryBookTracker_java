@@ -16,6 +16,15 @@ public class Library {
         this.books.add(new Book("1984", "George Orwell", "9780451524935"));
     }
 
+    public void toggleStatus(String isbn) {
+        for (Book book : books) {
+            if (book.getIsbn().equals(isbn)) {
+                book.setAvailable(!book.isAvailable());
+                break;
+            }
+        }
+    }
+
     public void addBook(Book book) {
         books.add(book);
         System.out.println("Book added: " + book.getTitle());

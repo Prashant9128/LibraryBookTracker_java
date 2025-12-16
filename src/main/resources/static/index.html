@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="app-container">
         <header>
@@ -25,6 +27,11 @@
             <section class="hero">
                 <h2>Manage your library <br> with <span class="gradient-text">elegance.</span></h2>
                 <p>Track your collection, authors, and reading status in one place.</p>
+
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search by title, author, or ISBN...">
+                    <span class="search-icon">🔍</span>
+                </div>
             </section>
 
             <section class="book-grid" id="bookGrid">
@@ -32,6 +39,9 @@
             </section>
         </main>
     </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <!-- Modal for Adding Book -->
     <div class="modal-overlay" id="addBookModal">
@@ -60,4 +70,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>

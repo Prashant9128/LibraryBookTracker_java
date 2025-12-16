@@ -24,6 +24,11 @@ public class LibraryController {
         library.addBook(book);
     }
 
+    @PutMapping("/{isbn}/status")
+    public void toggleStatus(@PathVariable String isbn) {
+        library.toggleStatus(isbn);
+    }
+
     @DeleteMapping("/{isbn}")
     public void removeBook(@PathVariable String isbn) {
         library.removeBook(isbn);
