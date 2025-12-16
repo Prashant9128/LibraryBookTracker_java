@@ -1,69 +1,109 @@
 const API_URL = '/api/books';
 
+// DOM Elements
 const bookGrid = document.getElementById('bookGrid');
 const addBookBtn = document.getElementById('addBookBtn');
 const addBookModal = document.getElementById('addBookModal');
 const closeModal = document.getElementById('closeModal');
 const addBookForm = document.getElementById('addBookForm');
 const searchInput = document.getElementById('searchInput');
-const toastContainer = document.getElementById('toastContainer');
+
+// Stat Elements
+const totalEl = document.getElementById('totalBooks');
+const availableEl = document.getElementById('availableBooks');
+const borrowedEl = document.getElementById('borrowedBooks');
 
 // State
 let books = [];
 
-// Fetch Books
+// Initialize Tilt for Stats
+VanillaTilt.init(document.querySelectorAll(".stat-card"), {
+    max: 10,
+    speed: 400,
+    glare: true,
+    "max-glare": 0.1
+});
+
+// Fetch & Render
 async function fetchBooks() {
     try {
         const response = await fetch(API_URL);
         books = await response.json();
+        updateStats();
         renderBooks(books);
     } catch (error) {
-        showToast('Error fetching books', 'error');
-        console.error('Error fetching books:', error);
+        showToast('System Error: Could not fetch data', 'error');
     }
 }
 
-// Render Books
-function renderBooks(booksToRender) {
-    if (booksToRender.length === 0) {
+function updateStats() {
+    // Animate numbers
+    const total = books.length;
+    const available = books.filter(b => b.available).length;
+    const borrowed = total - available;
+
+    animateValue(totalEl, parseInt(totalEl.innerText), total, 1000);
+    animateValue(availableEl, parseInt(availableEl.innerText), available, 1000);
+    animateValue(borrowedEl, parseInt(borrowedEl.innerText), borrowed, 1000);
+}
+
+function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = Math.floor(progress * (end - start) + start);
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+function renderBooks(data) {
+    if (data.length === 0) {
         bookGrid.innerHTML = `
-            <div class="empty-state">
-                <span class="empty-state-icon">📚</span>
-                <p>No books found in your library.</p>
-                ${books.length > 0 ? '' : '<p>Click "Add Book" to get started.</p>'}
+            <div style="grid-column: 1/-1; text-align: center; padding: 4rem; opacity: 0.5;">
+                <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p>No records found in the database.</p>
             </div>
         `;
         return;
     }
 
-    bookGrid.innerHTML = booksToRender.map(book => `
-        <div class="book-card">
-            <div class="card-header">
-                <h3>${escapeHtml(book.title)}</h3>
-                <span 
-                    class="status-badge ${book.available ? 'available' : 'borrowed'}"
-                    onclick="toggleStatus('${book.isbn}')"
-                    title="Click to toggle status"
-                >
-                    ${book.available ? 'Available' : 'Borrowed'}
-                </span>
+    bookGrid.innerHTML = data.map(book => `
+        <div class="book-card-item">
+            <div class="card-top">
+                <h4>${escapeHtml(book.title)}</h4>
+                <div class="book-meta">
+                    <i class="fa-solid fa-user-pen"></i>
+                    <span>${escapeHtml(book.author)}</span>
+                </div>
+                
+                <div class="status-chip ${book.available ? 'available' : 'borrowed'}"
+                     onclick="toggleStatus('${book.isbn}')">
+                    <i class="fa-solid ${book.available ? 'fa-check' : 'fa-clock'}"></i>
+                    <span>${book.available ? 'In Stock' : 'Checked Out'}</span>
+                </div>
             </div>
-            <span class="author">by ${escapeHtml(book.author)}</span>
-            <div class="card-footer">
-                <span class="isbn">ISBN: ${escapeHtml(book.isbn)}</span>
-                <button class="delete-btn" onclick="deleteBook('${book.isbn}')">Remove</button>
+
+            <div class="card-actions">
+                <span class="isbn-tag">#${escapeHtml(book.isbn)}</span>
+                <button class="btn-trash" onclick="deleteBook('${book.isbn}')">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
             </div>
         </div>
     `).join('');
 }
 
-// Search Handler
+// Search
 searchInput.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
-    const filtered = books.filter(book =>
-        book.title.toLowerCase().includes(term) ||
-        book.author.toLowerCase().includes(term) ||
-        book.isbn.includes(term)
+    const filtered = books.filter(b =>
+        b.title.toLowerCase().includes(term) ||
+        b.author.toLowerCase().includes(term) ||
+        b.isbn.includes(term)
     );
     renderBooks(filtered);
 });
@@ -71,32 +111,21 @@ searchInput.addEventListener('input', (e) => {
 // Toggle Status
 window.toggleStatus = async (isbn) => {
     try {
-        const response = await fetch(`${API_URL}/${isbn}/status`, {
-            method: 'PUT'
-        });
-
+        const response = await fetch(`${API_URL}/${isbn}/status`, { method: 'PUT' });
         if (response.ok) {
             // Optimistic update
             const book = books.find(b => b.isbn === isbn);
-            if (book) {
-                book.available = !book.available;
-                renderBooks(books); // Re-render to show new Status using current filter if any
-                // Re-apply search filter if needed, but simple re-render of 'books' clears filter visually if we don't track it. 
-                // Better: re-trigger search logic:
-                searchInput.dispatchEvent(new Event('input'));
-
-                showToast(`Marked as ${book.available ? 'Available' : 'Borrowed'}`, 'success');
-            }
+            if (book) book.available = !book.available;
+            updateStats();
+            searchInput.dispatchEvent(new Event('input')); // Re-render with filter
+            showToast('Status updated successfully');
         }
-    } catch (error) {
-        showToast('Failed to update status', 'error');
-    }
+    } catch (e) { showToast('Update failed', 'error'); }
 };
 
 // Add Book
 addBookForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const newBook = {
         title: document.getElementById('title').value,
         author: document.getElementById('author').value,
@@ -104,88 +133,69 @@ addBookForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        const response = await fetch(API_URL, {
+        const res = await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newBook)
         });
 
-        if (response.ok) {
+        if (res.ok) {
             closeModalFunc();
             addBookForm.reset();
-            await fetchBooks();
-            showToast('Book added successfully!', 'success');
+            fetchBooks();
+            showToast('New record created');
         }
-    } catch (error) {
-        showToast('Error adding book', 'error');
-        console.error('Error adding book:', error);
-    }
+    } catch (e) { showToast('Submission failed', 'error'); }
 });
 
-// Delete Book
+// Delete
 window.deleteBook = async (isbn) => {
-    if (!confirm('Are you sure you want to remove this book?')) return;
-
+    if (!confirm('Archive this record?')) return;
     try {
-        const response = await fetch(`${API_URL}/${isbn}`, {
-            method: 'DELETE'
-        });
-
-        if (response.ok) {
-            await fetchBooks();
-            showToast('Book designated for removal', 'success');
+        const res = await fetch(`${API_URL}/${isbn}`, { method: 'DELETE' });
+        if (res.ok) {
+            fetchBooks();
+            showToast('Record archived');
         }
-    } catch (error) {
-        showToast('Error deleting book', 'error');
-    }
+    } catch (e) { showToast('Delete failed', 'error'); }
 };
 
-// Toast Notification
-function showToast(message, type = 'success') {
+// Toast
+function showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <span>${type === 'success' ? '✅' : '❌'}</span>
-        <span>${message}</span>
+    toast.style.cssText = `
+        background: rgba(30, 41, 59, 0.9);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        border-left: 4px solid ${type === 'success' ? '#4ade80' : '#ef4444'};
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        display: flex; align-items: center; gap: 1rem;
+        animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        font-size: 0.9rem;
     `;
-
-    toastContainer.appendChild(toast);
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i> ${msg}`;
+    container.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s forwards';
-        setTimeout(() => toast.remove(), 300);
+        toast.style.animation = 'fadeOut 0.4s forwards';
+        setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
 
-// Modal Logic
-addBookBtn.addEventListener('click', () => {
-    addBookModal.classList.add('active');
-});
+// Modal
+addBookBtn.onclick = () => addBookModal.classList.add('active');
+const closeModalFunc = () => addBookModal.classList.remove('active');
+closeModal.onclick = closeModalFunc;
+addBookModal.onclick = (e) => { if (e.target === addBookModal) closeModalFunc(); };
 
-function closeModalFunc() {
-    addBookModal.classList.remove('active');
-}
+// Init
+fetchBooks();
 
-closeModal.addEventListener('click', closeModalFunc);
-
-addBookModal.addEventListener('click', (e) => {
-    if (e.target === addBookModal) {
-        closeModalFunc();
-    }
-});
-
-// Utility
+// Helper
 function escapeHtml(text) {
     if (!text) return '';
-    return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
-
-// Initial Load
-fetchBooks();

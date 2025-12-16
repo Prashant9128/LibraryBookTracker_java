@@ -4,70 +4,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Book Tracker</title>
+    <title>Library Os | Future of Management</title>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons & Charts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="app-container">
-        <header>
-            <div class="logo">
-                <span class="icon">📚</span>
-                <h1>LibraryTracker</h1>
-            </div>
-            <button id="addBookBtn" class="btn-primary">
-                <span>+</span> Add Book
-            </button>
-        </header>
+    <div class="background-mesh"></div>
 
-        <main>
-            <section class="hero">
-                <h2>Manage your library <br> with <span class="gradient-text">elegance.</span></h2>
-                <p>Track your collection, authors, and reading status in one place.</p>
-
-                <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="Search by title, author, or ISBN...">
-                    <span class="search-icon">🔍</span>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-layer-group"></i>
                 </div>
-            </section>
+                <span class="logo-text">Lib<span class="highlight">OS</span></span>
+            </div>
 
-            <section class="book-grid" id="bookGrid">
-                <!-- Books will be injected here -->
-            </section>
+            <nav>
+                <a href="#" class="nav-item active">
+                    <i class="fa-solid fa-grid-2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Collection</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="user-profile">
+                <div class="avatar">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                </div>
+                <div class="user-info">
+                    <span class="name">Admin User</span>
+                    <span class="role">Librarian</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Search collection...">
+                </div>
+
+                <button id="addBookBtn" class="btn-glow">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>New Entry</span>
+                </button>
+            </header>
+
+            <div class="dashboard-grid">
+                <!-- Stats Cards -->
+                <div class="stats-section">
+                    <div class="stat-card" data-tilt>
+                        <div class="icon-box blue">
+                            <i class="fa-solid fa-books"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="label">Total Books</span>
+                            <h2 id="totalBooks">0</h2>
+                        </div>
+                        <!-- Mini Chart Canvas -->
+                        <canvas id="totalChart" class="mini-chart"></canvas>
+                    </div>
+
+                    <div class="stat-card" data-tilt>
+                        <div class="icon-box green">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="label">Available</span>
+                            <h2 id="availableBooks">0</h2>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" data-tilt>
+                        <div class="icon-box orange">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="label">Borrowed</span>
+                            <h2 id="borrowedBooks">0</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Grid -->
+                <section class="content-section">
+                    <div class="section-header">
+                        <h3>Recent Collection</h3>
+                        <div class="view-options">
+                            <button class="icon-btn active"><i class="fa-solid fa-grid"></i></button>
+                            <button class="icon-btn"><i class="fa-solid fa-list"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="book-grid" id="bookGrid">
+                        <!-- Books injected here -->
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 
-    <!-- Toast Container -->
-    <div id="toastContainer" class="toast-container"></div>
-
-    <!-- Modal for Adding Book -->
+    <!-- Modal -->
     <div class="modal-overlay" id="addBookModal">
-        <div class="modal">
+        <div class="modal-glass">
             <div class="modal-header">
-                <h3>Add New Book</h3>
-                <button class="close-btn" id="closeModal">&times;</button>
+                <h3><i class="fa-solid fa-pen-to-square"></i> New Record</h3>
+                <button class="close-btn" id="closeModal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="addBookForm">
-                <div class="form-group">
-                    <label for="title">Title</label>
-                    <input type="text" id="title" required placeholder="e.g. The Great Gatsby">
+                <div class="input-group">
+                    <label>Book Title</label>
+                    <input type="text" id="title" required placeholder="Enter title...">
                 </div>
-                <div class="form-group">
-                    <label for="author">Author</label>
-                    <input type="text" id="author" required placeholder="e.g. F. Scott Fitzgerald">
+                <div class="input-group">
+                    <label>Author</label>
+                    <input type="text" id="author" required placeholder="Enter author name...">
                 </div>
-                <div class="form-group">
-                    <label for="isbn">ISBN</label>
-                    <input type="text" id="isbn" required placeholder="e.g. 9780743273565">
+                <div class="input-group">
+                    <label>ISBN</label>
+                    <input type="text" id="isbn" required placeholder="ISBN-13 format...">
                 </div>
-                <button type="submit" class="btn-submit">Add to Library</button>
+                <button type="submit" class="btn-submit-glow">
+                    <span>Add to System</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
             </form>
         </div>
     </div>
 
+    <div id="toastContainer" class="toast-container"></div>
     <script src="script.js"></script>
 </body>
 
