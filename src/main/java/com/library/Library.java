@@ -1,13 +1,19 @@
 package com.library;
 
+import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class Library {
     private List<Book> books;
 
     public Library() {
         this.books = new ArrayList<>();
+        // Add some sample data
+        this.books.add(new Book("The Great Gatsby", "F. Scott Fitzgerald", "9780743273565"));
+        this.books.add(new Book("To Kill a Mockingbird", "Harper Lee", "9780061120084"));
+        this.books.add(new Book("1984", "George Orwell", "9780451524935"));
     }
 
     public void addBook(Book book) {
@@ -30,7 +36,7 @@ public class Library {
             }
         }
     }
-    
+
     public List<Book> getBooks() {
         return books;
     }

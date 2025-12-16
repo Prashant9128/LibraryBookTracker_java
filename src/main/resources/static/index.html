@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Book Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <span class="icon">📚</span>
+                <h1>LibraryTracker</h1>
+            </div>
+            <button id="addBookBtn" class="btn-primary">
+                <span>+</span> Add Book
+            </button>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h2>Manage your library <br> with <span class="gradient-text">elegance.</span></h2>
+                <p>Track your collection, authors, and reading status in one place.</p>
+            </section>
+
+            <section class="book-grid" id="bookGrid">
+                <!-- Books will be injected here -->
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Adding Book -->
+    <div class="modal-overlay" id="addBookModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add New Book</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <form id="addBookForm">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" required placeholder="e.g. The Great Gatsby">
+                </div>
+                <div class="form-group">
+                    <label for="author">Author</label>
+                    <input type="text" id="author" required placeholder="e.g. F. Scott Fitzgerald">
+                </div>
+                <div class="form-group">
+                    <label for="isbn">ISBN</label>
+                    <input type="text" id="isbn" required placeholder="e.g. 9780743273565">
+                </div>
+                <button type="submit" class="btn-submit">Add to Library</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
